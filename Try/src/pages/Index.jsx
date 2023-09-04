@@ -12,7 +12,7 @@ import {
 
 import {CustomButton} from '../components';
 
-import {svg} from '../assets'
+import {svg, financeSvg} from '../assets'
 
 
 const Index = () => {
@@ -29,7 +29,7 @@ const Index = () => {
               </motion.header>
               <motion.div className='index-content' {...headContainerAnimation}>
                 <motion.div {...headTextAnimation}>
-                  <img src={svg} alt='react' className='w-full'/>
+                  <img src={financeSvg} alt='react' className='w-full'/>
                 </motion.div>
                 <motion.div {...headContentAnimation} className='flex flex-col gap-5'>
                   <p className='max-w-md font-normal text-gray-600 text-base'>

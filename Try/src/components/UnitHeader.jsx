@@ -8,12 +8,12 @@ const UnitHeader = ({unit, flipped, setFlipped}) => {
   return (
     <AnimatePresence>
       <motion.div 
-        className='flex flex-col gap-6 w-full rounded-xl px-4 py-2.5 unit-header'
+        className='flex flex-col gap-6 w-full rounded-xl px-4 py-4 unit-header'
         {...slideAnimation('down')}
         style={{background: mainStyles.backgroundColor}}
       >
-        <div className='flex justify-between items-center p-4'>
-          <h1 className='text-2xl font-bold' style={{color: mainStyles.textColor}}>Unit {unit.unitNumber}</h1>
+        <div className='flex justify-between items-center p-4 gap-4'>
+          <h1 className='text-2xl font-bold' style={{color: mainStyles.textColor}}>{unit.title}</h1>
           <p className='text-md font-normal max-lg:hidden max-lg:text-sm' style={{color: mainStyles.textColor}}>{unit.description}</p>
         </div>
         <div className='flex gap-2.5'>

@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, useRef} from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useSnapshot } from 'valtio'
 import state from '../store'
@@ -13,10 +13,24 @@ const Home = () => {
 
   const snap = useSnapshot(state);
 
+  const homeRef = useRef(null);
+
+  useEffect(() => {
+    if(snap.intro === 1){
+      homeRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }
+  }, [snap.intro]);
+
   return (
     <AnimatePresence>
       {snap.intro === 1 && (
-          <motion.section className='home' {...slideAnimation('left')} {...headContainerAnimation}>
+          <motion.section 
+            className='home' {...slideAnimation('left')} {...headContainerAnimation}
+            ref={homeRef}
+          >
             <motion.div
               className='absolute z-10 top-5 right-5' 
               {...fadeAnimation}

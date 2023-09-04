@@ -60,7 +60,7 @@ const BarPercentage = ({percentageValues, overflow}) => {
                 <motion.div
                 key={index}
                 className={`h-full min-h-[40px] text-white text-center font-bold justify-center items-center flex ${index === roundedStartIndex ? 'rounded-l-lg' : ''} ${
-                  index === roundedEndIndex ? 'rounded-r-lg' : ''
+                  index === roundedEndIndex && percentages.reduce((total, percentage) => total + percentage, 0) === 100 ? 'rounded-r-lg' : ''
                 }`}
                 style={{ width: `${percentage}%`, backgroundColor: colors[index]}}
                 initial={{ width: 0 }}
@@ -70,6 +70,17 @@ const BarPercentage = ({percentageValues, overflow}) => {
                     {percentage > 10 && (percentage.toFixed(0) + '%')}
                 </motion.div>
             ))}
+            {percentages.reduce((total, percentage) => total + percentage, 0) < 100 && (
+                <motion.div
+                className={`h-full min-h-[40px] text-white text-center font-bold justify-center items-center flex rounded-r-lg ${percentages.reduce((total, percentage) => total + percentage, 0) === 0 ? 'rounded-l-lg' : ''}`}
+                style={{ width: `${100 - percentages.reduce((total, percentage) => total + percentage, 0)}%`, backgroundColor: colors[percentages.length]}}
+                initial={{ width: 0 }}
+                animate={{ width: `${100 - percentages.reduce((total, percentage) => total + percentage, 0)}%` }}
+                transition={{ duration: 0.5, delay: percentages.length * 0.1 }}
+                >
+                    {100 - percentages.reduce((total, percentage) => total + percentage, 0) > 10 && ((100 - percentages.reduce((total, percentage) => total + percentage, 0)).toFixed(0) + '%')}
+                </motion.div>
+            )}
         </div>
     );
 };

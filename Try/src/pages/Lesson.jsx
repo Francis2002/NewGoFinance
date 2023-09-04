@@ -3,7 +3,7 @@ import { CustomButton } from '../components'
 import { useSnapshot } from 'valtio'
 import state from '../store'
 import { fadeAnimation, headContainerAnimation, slideAnimation } from '../helpers/motion'
-import { CaseBasedLearning, Infographics, Introduction, Simulation } from '../lessons'
+import { CaseBasedLearning, Introduction, Simulation } from '../lessons'
 import { useEffect } from 'react'
 
 const renderLessonType = (type) => {
@@ -11,7 +11,7 @@ const renderLessonType = (type) => {
     case 'star':
       return <Simulation/>
     case 'book':
-      return <Infographics/>
+      return <Introduction />
     case 'trophy':
       return <CaseBasedLearning/>
     default:

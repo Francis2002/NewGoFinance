@@ -1,12 +1,12 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { slideAnimation } from '../helpers/motion'
 import { useSnapshot } from 'valtio'
 import state from '../store'
 import { colors, mainStyles } from '../helpers/constants'
 
 import { CustomButton } from '../components'
-import { BarPercentage, ColorLegend} from '../graphics'
+import { BarPercentage, ColorLegend, LineChart} from '../graphics'
 
 const Simulation = () => {
 
@@ -14,10 +14,14 @@ const Simulation = () => {
 
   const [overflow, setOverflow] = useState(false)
 
+  const [response, setResponse] = useState(null)
+
+  const feedbackRef = useRef(null);
+
   const handleInputChange = (title, value) => {
     if(snap.inputValues === null) state.inputValues = {}
     const parsedValue = parseInt(value);
-    if (!isNaN(parsedValue)) state.inputValues[title] = parsedValue;
+    if (!isNaN(parsedValue) && (snap.mainInput != 0 && snap.mainInput != null)) state.inputValues[title] = (parsedValue/snap.mainInput*100);
     else state.inputValues[title] = 0;
   };
 
@@ -58,6 +62,19 @@ const Simulation = () => {
   };
 
 
+  async function getResponse(prompt){
+    await fetch('./src/lessons/responses.json')
+      .then(response => response.json())
+      .then(data => {
+        console.log(data[prompt])
+        setResponse(data[prompt])
+      })
+      .catch(err => {
+        console.log(err)
+      })
+  }
+
+
   const handleSubmit = () => {
 
     let prompt = snap.lesson.prompt;
@@ -95,6 +112,8 @@ const Simulation = () => {
     }
 
     console.log(prompt);
+
+    getResponse('sim');
   }
 
 
@@ -112,11 +131,80 @@ const Simulation = () => {
   }, [snap.mainInput, overflow, snap.specialInputs])
 
   useEffect(() => {
+    if(response !== null){
+      feedbackRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }
+  }, [response]);
+
+  useEffect(() => {
     state.inputValues = {}
+    state.mainInput = 1000
     snap.lesson.initialInputs.map((input) => {
       if(!input.isMain && !input.isSpecial) state.inputValues[input.title] = 0
     })
   }, [])
+
+  const calculateAllPoints = () => {
+    let tempPoints = []
+    let numberOfPoints = 20
+
+    const initialInvestment = 10000;
+    const investmentFrequency = 12; // Yearly
+    const investmentAmount = 1000;
+    const annualInterestRate = 10; // 5%
+    const totalInvestmentYears = 10;
+
+    // Convert the annual interest rate to decimal
+    const decimalInterestRate = annualInterestRate / 100;
+
+    // Calculate the time period for each step
+    const timeStep = totalInvestmentYears / numberOfPoints;
+
+    for (let i = 0; i <= numberOfPoints; i++) {
+      const years = i * timeStep;
+
+      // Calculate compound interest
+      const compoundInterest = initialInvestment * Math.pow(1 + (decimalInterestRate / investmentFrequency), investmentFrequency * years);
+      
+      // Add the investment amount for this step
+      const totalValue = compoundInterest + (investmentAmount * (i + 1));
+
+      // Add the point to the array
+      tempPoints.push(totalValue.toFixed(2));
+    }
+
+    return tempPoints;
+  }
+
+  const renderGraphics = (graphics) => {
+    switch (graphics) {
+      case 'barPercentage':
+        if(!snap.inputOverflow){
+        return (
+            <div className='flex flex-col items-center justify-center w-full h-full min-h-[200px] gap-2'>
+              <ColorLegend labels={[...snap.lesson.initialInputs.filter(input => !input.isMain && !input.isSpecial).map(input => input.title), snap.lesson.otherLabel]} colors={colors}/>
+              <BarPercentage percentageValues={snap.inputValues} overflow={snap.inputOverflow}/>
+            </div>
+        )}
+        else{
+          return (
+            <motion.div className='text-red-500 font-bold min-h-[200px] items-center justify-center flex' {...slideAnimation('up')}>
+              {snap.lesson.overflowText}
+            </motion.div>
+          )}
+      case 'lineChart':
+        return (
+          <div className='flex flex-col items-center justify-center w-full h-full min-h-[200px] gap-2'>
+            <LineChart inputValue={calculateAllPoints()} index={null} color={mainStyles.backgroundColor} svgWidth={600} svgHeight={600} margin={60}/>
+          </div>
+        )
+      default:
+        return null
+    }
+  }
   
 
   return (
@@ -130,7 +218,7 @@ const Simulation = () => {
         >
           {snap.lesson.initialText}
         </motion.div>
-        <div className='w-full h-full rounded-lg flex flex-col sm:flex-row gap-8'>
+        <div className='w-full h-full rounded-lg flex flex-col md:flex-row gap-8 items-center justify-center'>
           <motion.div className='input-container'>
             <motion.div {...slideAnimation('up')}>
               <CustomButton
@@ -154,6 +242,7 @@ const Simulation = () => {
                     type={input.type}
                     placeholder={input.placeHolder}
                     id={`input-${index}`}
+                    value={input.isMain && "1000"}
                     onBlur={(e) => {
                       if(!input.isSpecial && !input.isMain) handleInputChange(input.title, sanitizeInput(e.target.value))
                       if(input.isMain) handleMainInputChange(sanitizeInput(e.target.value))
@@ -168,27 +257,28 @@ const Simulation = () => {
                     }}
                   />
                   {(!input.isMain && !input.isSpecial) && <div className='font-bold'>
-                    %
+                    {input.label}
                   </div>}
                 </div>
               </motion.div>
             ))}
           </motion.div>
-          <motion.div className='w-full min-h-[200px] flex items-center justify-center rounded-lg p-6 border-gray border shadow' {...slideAnimation('right')}>
-            {!snap.inputOverflow ? (
-              <div className='flex flex-col items-center justify-center w-full h-full min-h-[200px] gap-2'>
-                <ColorLegend labels={snap.lesson.initialInputs.filter(input => !input.isMain && !input.isSpecial).map(input => input.title)} colors={colors}/>
-                <BarPercentage percentageValues={snap.inputValues} overflow={snap.inputOverflow}/>
-              </div>
-            ) : (
-              <motion.div className='text-red-500 font-bold min-h-[200px] items-center justify-center flex' {...slideAnimation('up')}>
-                {snap.lesson.overflowText}
-              </motion.div>
+          <div className='flex flex-col items-center justify-center w-full gap-4 h-full'>
+            <motion.div className='w-full h-full min-h-[200px] flex items-center justify-center rounded-lg p-6 border-gray border shadow' {...slideAnimation('right')}>
+              {renderGraphics(snap.lesson.graphic)}
+            </motion.div>
+            <motion.div 
+              className='flex w-full h-full rounded-lg p-6 text-white font-bold min-w-[100px]' {...slideAnimation('right')} 
+              style={{background: mainStyles.backgroundColor, whiteSpace: 'pre-line'}}
+              ref={feedbackRef}
+            >
+              {response === null ? (
+                "Feedback to your decisions will appear here"
+              ) : (
+                  response
               )}
-          </motion.div>
-          <motion.div className='bg-black rounded-lg p-6 text-white md:w-1/4 w-full' {...slideAnimation('right')} style={{background: mainStyles.backgroundColor}}>
-            Feedback Here
-          </motion.div>
+            </motion.div>
+          </div>
         </div>
       </motion.div>
     </AnimatePresence>

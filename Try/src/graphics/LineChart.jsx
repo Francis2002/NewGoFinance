@@ -1,36 +1,41 @@
 import React, { useState, useEffect } from 'react';
 
-function LineChart({ index, inputValue, color }) {
+function LineChart({ index, inputValue, color, svgHeight, svgWidth, margin }) {
   const [points, setPoints] = useState([]);
 
     // Function to check for duplicate X values
     const checkForDuplicates = () => {
-        for (let i = 0; i < points.length; i++) {
-            for (let j = i + 1; j < points.length; j++) {
-                if (points[i].x === index) {
-                    const newPoints = [...points];
-                    newPoints.splice(i, 1);
-                    setPoints(newPoints);
-                    break;
-                }
-            }
-        }
+      for (let i = 0; i < points.length; i++) {
+          for (let j = i + 1; j < points.length; j++) {
+              if (points[i].x === points[j].x) {
+                  const newPoints = [...points];
+                  newPoints.splice(i, 1);
+                  setPoints(newPoints);
+                  break;
+              }
+          }
+      }
     };
 
     useEffect(() => {
         checkForDuplicates();
+        console.log(points, points.length);
     }, [points]);
 
   useEffect(() => {
-    if (inputValue !== undefined) {
-      setPoints((prevPoints) => [...prevPoints, { x: index, y: parseInt(inputValue) }]);
+    console.log("inputValue: " + inputValue);
+    if (Array.isArray(inputValue)) {
+      let tempPoints = [...points];
+      inputValue.forEach((value, index) => {
+        tempPoints = [...tempPoints, { x: index + 1, y: parseInt(value) }];
+      });
+      setPoints(tempPoints);
+    }
+    else if (inputValue !== undefined) {
+      setPoints((prevPoints) => [...prevPoints, { x: index, y: parseInt(inputValue)}]);
     }
   }, [inputValue, index]);
 
-
-  const svgWidth = 200;
-  const svgHeight = 150;
-  const margin = 40;
   const chartWidth = svgWidth - 2 * margin;
   const chartHeight = svgHeight - 2 * margin;
 
@@ -74,7 +79,7 @@ function LineChart({ index, inputValue, color }) {
 
       {/* Y-axis labels */}
       {points.map((point, index) => (
-        <text
+        (point.y === points.reduce((min, point) => Math.min(min, point.y), Infinity) || point.y === points.reduce((max, point) => Math.max(max, point.y), -Infinity)) && (<text
           key={index}
           x={margin - 5} // Position to the left of the y-axis
           y={yScale(point.y)}
@@ -82,7 +87,7 @@ function LineChart({ index, inputValue, color }) {
           dominantBaseline="middle" // Vertically center the label
         >
           {point.y}
-        </text>
+        </text>)
       ))}
 
         {/* Render X and Y axes */}

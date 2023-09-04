@@ -30,7 +30,7 @@ const CaseBasedLearning = () => {
       case 'percentageBar':
         return <div key={index} className={`w-full font-bold rounded-lg p-4 shadow border border-gray text-center flex flex-col gap-2 items-center justify-center`}><ColorLegend labels={['test']} colors={colors}/> <BarPercentage percentageValues={[34]} overflow={false}/></div>
       case 'lineChart':
-        return <div key={index} className={`w-full font-bold rounded-lg p-4 shadow border border-gray text-center flex flex-col gap-2 items-center justify-center`}><ColorLegend labels={[stat.title]} colors={[colors[index]]}/> <LineChart inputValue={value} index={iteration} color={colors[index]}/></div>
+        return <div key={index} className={`w-full font-bold rounded-lg p-4 shadow border border-gray text-center flex flex-col gap-2 items-center justify-center`}><ColorLegend labels={[stat.title]} colors={[colors[index]]}/> <LineChart inputValue={value} index={iteration} color={colors[index]} svgWidth={200} svgHeight={150} margin={40}/></div>
       default:
         return null
     }

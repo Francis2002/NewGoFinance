@@ -38,6 +38,7 @@ const UnitTile = ({tile, index, toRender}) => {
         <button className='ml-2 rounded-lg w-fit p-2' style={{background: mainStyles.white}} onClick={renderLesson(tile)}>
           <p className='text-sm font-bold' style={{color: mainStyles.secondaryColor}}>Start</p>
         </button>
+        <p className='text-sm font-bold max-md:hidden' style={{color: mainStyles.white}}>{tile.description}</p>
       </motion.div>)}
     </AnimatePresence>
   )
