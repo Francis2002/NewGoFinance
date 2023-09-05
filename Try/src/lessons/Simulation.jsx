@@ -8,7 +8,18 @@ import { colors, mainStyles } from '../helpers/constants'
 import { CustomButton } from '../components'
 import { BarPercentage, ColorLegend, LineChart} from '../graphics'
 
+import { Configuration, OpenAIApi } from "openai";
+import * as dotenv from 'dotenv';
+
 const Simulation = () => {
+
+  dotenv.config();
+
+  const config = new Configuration({
+    apiKey: process.env.API_KEY,
+  });
+
+  const openai = new OpenAIApi(config);
 
   const snap = useSnapshot(state);
 
@@ -17,6 +28,44 @@ const Simulation = () => {
   const [response, setResponse] = useState(null)
 
   const feedbackRef = useRef(null);
+
+  const requestJson = (prompt, jsonStructure) => `${prompt}
+  Do not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation.
+  ${JSON.stringify(jsonStructure, null, 2)}`;
+
+  const generateJson = async (messagesToSend) => {
+    const completion = await openai.createChatCompletion({
+      model: 'gpt-3.5-turbo',
+      messagesToSend,
+    });
+  
+    try {
+      return JSON.parse(completion.data.choices[0].message?.content);
+    } catch (e) {
+      throw new Error('The json strucure generated from gpt is not a valid one, please try again');
+    }
+  };
+
+  const requestedOutputStructure = [
+    {
+      title: 'The idea title',
+      description: 'The idea description',
+    },
+  ];
+  
+  const messages = [
+    {
+      role: 'system',
+      content: 'Act as a copywriter for developers',
+    },
+    {
+      role: 'user',
+      content: requestJson(
+        `I'm a software engineer. Create for me a list as long as you can of ideas for Javascript tutorials.`,
+        requestedOutputStructure
+      ),
+    },
+  ];
 
   const handleInputChange = (title, value) => {
     if(snap.inputValues === null) state.inputValues = {}
@@ -113,7 +162,15 @@ const Simulation = () => {
 
     console.log(prompt);
 
-    getResponse('sim');
+    /* getResponse('sim'); */
+
+    generateJson(messages)
+    .then((res) => {
+      console.log(res);
+    })
+    .catch((e) => {
+      console.log(e);
+    });
   }
 
 

@@ -24,7 +24,7 @@ const Index = () => {
             <motion.section className='index' {...slideAnimation('left')}>
               <motion.header {...slideAnimation('down')}>
                 <h1 className='index-text'>
-                  Go Finance
+                  GO FINANCE
                 </h1>
               </motion.header>
               <motion.div className='index-content' {...headContainerAnimation}>

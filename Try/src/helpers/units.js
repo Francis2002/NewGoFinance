@@ -96,7 +96,7 @@ export const units = [
         {
           type: "star",
           description: "Budgeting Simulation",
-          initialText: "Welcome to the Budgeting Simulation! Practice your financial skills by making budgeting decisions to allocate monthly income across different expenses. Choose wisely to have a balanced budget and achieve your financial goals. The remaining non-allocated budget will be considered as savings",
+          initialText: "Welcome to the Budgeting Simulation! Practice your financial skills by making budgeting decisions to allocate monthly income across different expenses. Choose wisely to have a balanced budget and achieve your financial goals. The remaining non-allocated budget will be considered as savings.",
 
           overflowText: "Budget allocation exceeds 100%",
 
