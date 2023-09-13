@@ -1,6 +1,7 @@
 import Home from "./pages/Home"
 import Index from "./pages/Index"
 import Lesson from "./pages/Lesson"
+import Completed from "./pages/Completed"
 
 function App() {
 
@@ -9,6 +10,7 @@ function App() {
       <Index />
       <Home />
       <Lesson />
+      <Completed />
     </main>
   )
 }

@@ -23,7 +23,7 @@ const CaseBasedLearning = () => {
 
   const [impact, setImpact] = useState('')
 
-  const [data, setData] = useState(null)
+  const [result, setResult] = useState()
 
   const renderGraphics = (stat, index, value) => {
     switch (stat.graphic) {
@@ -36,6 +36,35 @@ const CaseBasedLearning = () => {
     }
   }
 
+  const getResult = async (prompt, outputStructure, systemContent) => {
+    try {
+      console.log("Sending request to server...");
+      const result = await fetch(/* '/server/generate.js' */ 'http://localhost:8080', {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prompt: prompt, outputStructure: snap.lesson.outputStructure, systemContent: snap.lesson.systemContent }),
+      });
+
+      console.log("Request sent!");
+
+      console.log(result.body);
+
+      const data = await result.json();
+      console.log(data);
+      if (result.status !== 200) {
+        throw data.error || new Error(`Request failed with status ${result.status}`);
+      }
+
+      setResult(data.result);
+    } catch(error) {
+      // Consider implementing your own error handling logic here
+      console.error(error);
+      alert(error.message);
+    }
+  }
+
   //set state.stats to an object with the value property of the objects in state.lesson.initialStats associated with the keys provided by the title property of the objects on mount
   useEffect(() => {
     const newStats = {}
@@ -45,50 +74,7 @@ const CaseBasedLearning = () => {
     state.stats = newStats
   }, [])
 
-  //get the response object from the responses.json file
-  const getResponseObject = (data, option) => {
-    console.log(data)
-    let returnObject = {}
-    let keyWords = []
-    switch (option) {
-      case 'startCase':
-        keyWords = ['Cash', 'Monthly Income', 'Monthly Expenses', ' Monthly Savings', 'Debt', 'Current Event', 'Current Impact', 'Choices']
-        break;
-      case 'event':
-        keyWords = ['Cash', 'Monthly Income', 'Monthly Expenses', ' Monthly Savings', 'Debt', 'Current Event', 'Current Impact', 'Choices']
-        break;
-      default:
-        break;
-    }
-    for(const keyword of keyWords) {
-      const index = data.indexOf(keyword)
-      if (index !== -1) {
-        const startIndex = index + keyword.length;
-        const endIndex = data.indexOf('\n', startIndex);
-        if (endIndex !== -1) {
-          const value = data.substring(startIndex, endIndex).trim();
-          returnObject[keyword] = value;
-        }
-      }
-    }
-    console.log(returnObject)
-    return returnObject;
-  }
-
-  async function getResponse(request) {
-    //fetch from a .json file in the responses folder that is in the same folder as the folder that this file is in
-    return await fetch(`./src/lessons/responses.json`)
-      .then(response => response.json())
-      .then(data => {
-        console.log(data[request])
-        setData(data[request])
-      })
-      .catch(err => {
-        console.log(err)
-      })
-  }
-
-  const handleAction = (action) => {
+  const handleAction = async (action) => {
     setIteration(iteration + 1)
     setIterationText(action + ' Iteration:' + iteration)
     //increment all values in state.stats by 1
@@ -115,32 +101,6 @@ const CaseBasedLearning = () => {
     prompt = prompt.replace(`${snap.lesson.promptSpecialInputs[1]}`, impact);
 
     prompt = prompt.replace(`${snap.lesson.promptSpecialInputs[2]}`, action);
-
-    const newInfo = console.log(prompt)
-
-    /* setIterationText(newInfo['iterationText'])
-
-    setEvent(newInfo['event'])
-
-    setImpact(newInfo['impact'])
-
-    setActions(newInfo['actions'])
-
-    setActions(snap.lesson.actions[iteration + 1]) */
-
-    setIterationText("Here a new event will be displayed at every iteration. Every Iteration is a week. This is week " + iteration + ".")
-
-    setEvent("Here a new event will be displayed at every iteration")
-
-    setImpact("Here a new impact will be displayed at every iteration")
-
-    setActions([`Action ${iteration * 4 + 1}`, `Action ${iteration * 4  + 2}`, `Action ${iteration * 4 + 3}`,`Action ${iteration * 4 + 4}`])
-
-    
-    for (const key in snap.stats){
-      //random number between -10 and 10
-      state.stats[key] = snap.stats[key] + (Math.floor(Math.random() * 21) - 10)*100
-    }
   }
 
   const handleStart = () => {
@@ -152,15 +112,21 @@ const CaseBasedLearning = () => {
   }
 
   useEffect(() => {
-    if (data !== null) {
-      const newInfo = getResponseObject(data, 'startCase')
-      setIteration(iteration + 1)
-      setIterationText(newInfo['iterationText'])
-      setEvent(newInfo['event'])
-      setImpact(newInfo['impact'])
-      setActions(newInfo['actions'])
+    if (result !== null) {
+      setIterationText(result['overallFeedback'])
+
+      setEvent(result['newEvent'])
+  
+      setImpact(result['impact'])
+  
+      setActions(result['newChoices'])
+  
+      
+      for (const key in snap.stats){
+        state.stats[key] = result['newFinancialSituation'][key.toLowerCase()]
+      }
     }
-  }, [data])
+  }, [result])
 
   return (
     <AnimatePresence>

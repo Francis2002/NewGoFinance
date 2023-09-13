@@ -100,7 +100,17 @@ export const units = [
 
           overflowText: "Budget allocation exceeds 100%",
 
-          prompt: "Please analyze my current budgeting allocation based on the following percentages: <input-1>% for <title-1>, <input-2>% for <title-2>, <input-3>% for <title-3>, <input-4>% for <title-4>, <input-5>% for <title-5>. The remaining budget falls under an 'Other' category. Based on this allocation, could you please identify the three budgeting principles that best describe my current approach? Additionally, highlight any principles that I might not be following and provide suggestions for incorporating them into my budgeting strategy. Analyse how closely i am following the 50/30/20 rule. Please classify the overall budget allocation on a scale of 1-5, with 1 being the least important and 5 being the most important. Do not classify each category individually nor any principles that you may mention, but rather the overall budget allocation only. Please do not mention the rating system in your response, but ate the end of your response, please state the rating you have assigned to the overall budget allocation.",
+          prompt: "Please analyze my current budgeting allocation based on the following percentages: <input-1>% for <title-1>, <input-2>% for <title-2>, <input-3>% for <title-3>, <input-4>% for <title-4>. The remaining budget falls under a 'Savings' category. Provide feedback in the 'you person' perspective. The response must be 1 object with the following structure.",
+
+          outputStructure: {
+            principlesFollowed: "Text detailing the three budgeting principles that best describe my current approach, explaining the principles and how they are followed",
+            nonFollowedPrinciples: "Text detailing the budgeting principles that I am not following, explaining the principles and how they can be incorporated into my budgeting strategy",
+            overallFeedback: "Text detailing the overall feedback for the budgeting allocation approach and suggestions about how i should improve my allocation, without providing concrete values, but increments and decrements in each category.", 
+            rating: "Number from 1 to 5, representing a classification of the overall budget allocation, with 5 being the best rating",
+          }
+          ,
+
+          systemContent: "Act as a budgeting expert and advisor for students",
 
           specialPrompt: " My budgeting goal is <goal>.",
 
@@ -111,14 +121,12 @@ export const units = [
             "<input-2>",
             "<input-3>",
             "<input-4>",
-            "<input-5>",
           ],
           promptTitles: [
             "<title-1>",
             "<title-2>",
             "<title-3>",
             "<title-4>",
-            "<title-5>"
           ],
           promptMainInput: null,
           promptMainTitle: null,
@@ -179,28 +187,7 @@ export const units = [
 
           overflowText: "Budget allocation exceeds 100%",
 
-          zeroThIterationPrompt: `Please provide initial values of a financial situation. This should be in the form:
-
-          "- New Values: 
-          <new cash value> (this is the money in the bank)
-          <new monthly income value>
-          <new monthly expense value> (this is the amount of the income spent per month)
-          <new monthly savings value> (this is the amount of the income saved per month)
-          <new debt value>"
-          
-          Now, please generate a new financial event that could impact the users' financial situation and provide the impact (as a change in the financial stats) that the event has on the financial situation. Additionally, create four new choices or actions in response to the event that the user can choose from. This should be in the form:
-
-          "- CurrentEvent: <event>
-
-          - CurrentImpact: <impact>
-
-          - Choices: 
-           <choice-1>
-           <choice-2>
-           <choice-3>
-           <choice-4>"
-          
-          Context: This interaction is part of a financial simulation where users learn to manage finances through practical scenarios. The AI evaluates choices, provides feedback, and generates dynamic scenarios for optimal financial decisions.
+          zeroThIterationPrompt: `Please provide initial values of a financial situation. Now, please generate a new financial event that could impact the users' financial situation and provide the impact (as a change in the financial stats) that the event has on the financial situation. Additionally, create four new choices or actions in response to the event that the user can choose from. Context: This interaction is part of a financial simulation where users learn to manage finances through practical scenarios. The AI evaluates choices, provides feedback, and generates dynamic scenarios for optimal financial decisions.
           `,
 
           prompt: `Current Financial State:
@@ -223,31 +210,30 @@ export const units = [
           Previous User Choice:
           - Chosen Action: <chosen-action>
               
-          Considering the user's previous interaction, please provide feedback about the choice made by the user considering the other options that were not chosen. Additionally,provide the new financial situation after the impact from that event on the financial situation. This should be in the form:
-
-          "- Feedback: <feedback>
-          
-          - New Values: 
-          <new cash value>
-          <new monthly income value>
-          <new monthly expense value>
-          <new monthly savings value>
-          <new debt value>"
-          
-          Now, please generate a new financial event that could impact the users' financial situation and provide the impact that the event has on the financial situation. Additionally, create four new choices or actions in response to the event that the user can choose from. This should be in the form:
-
-          "- CurrentEvent: <event>
-
-          - CurrentImpact: <impact>
-
-          - Choices: 
-           <choice-1>
-           <choice-2>,
-           <choice-3>
-           <choice-4>"
-          
-          Context: This interaction is part of a financial simulation where users learn to manage finances through practical scenarios. The AI evaluates choices, provides feedback, and generates dynamic scenarios for optimal financial decisions.
+          Considering the user's previous interaction, please provide feedback about the choice made by the user considering the other options that were not chosen. Additionally, provide the new financial situation after the choice from the user.
+          Now, please generate a new financial event that could impact the users' financial situation. Additionally, create four new choices or actions in response to the event that the user can choose from. Context: This interaction is part of a financial simulation where users learn to manage finances through practical scenarios. The AI evaluates choices, provides feedback, and generates dynamic scenarios for optimal financial decisions.
           `,
+
+          outputStructure: {
+            overallFeedback: "Text detailing the overall feedback for the decision and, if there was a better choice, say which one was better and why.", 
+            impact : "Text detailing the impact of the decision on the financial situation, saying how much each stat changed and why. This should match the new values of the financial situation.",
+            newFinancialSituation: {
+              "cash": "Number representing the new amount of money in the bank",
+              "monthly income": "Number representing the new monthly income",
+              "monthly expenses": "Number representing the new monthly expenses",
+              "monthly savings": "Number representing the new monthly savings",
+              "debt": "Number representing the new debt"
+            },
+            newEvent: "Text describing the new event that happened",
+            newChoices: [
+              "Text describing the first choice",
+              "Text describing the second choice",
+              "Text describing the third choice",
+              "Text describing the fourth choice"
+            ]
+          },
+
+          systemContent: "Act as a budgeting expert and advisor for students",
 
           promptInputStats: [
             "<stat-1>",
@@ -321,88 +307,105 @@ export const units = [
           initialText: "Welcome to the Investing Basics module! This module is your gateway to mastering the art of investing. Investing is more than just numbers on a spreadsheet; it's a powerful tool that empowers you to take control of your financial future.",
           sections: [
             {
-              title: "Fundamentals of Investing",
+              title: "Investing Fundamentals",
               subsections: [
                 {
                   type: "text",
-                  text: "",
+                  text: "Welcome to the Investing Fundamentals section. Investing is like planting seeds for your financial future. It's about putting your money to work to grow over time. Whether you're saving for a dream vacation or retirement, investing can help you achieve your goals."
                 },
                 {
                   type: "text",
-                  text: "",
+                  text: "Before diving into the world of investing, it's crucial to set clear financial goals. Think about what you want to achieve, whether it's buying a house, funding your children's education, or simply building wealth."
                 },
                 {
                   type: "text",
-                  text: "",
+                  text: "Understanding risk is vital. Different investments come with different levels of risk. It's like deciding between a safe, slow-growing tree and a fast-growing but riskier plant for your garden. Your comfort with risk plays a big role in shaping your investment choices."
                 },
                 {
                   type: "text",
-                  text: "",
+                  text: "In this section, we'll explore key investment concepts, starting with asset classes. Think of asset classes as different types of investments. The main ones are stocks (like owning a piece of a company), bonds (like lending money), real estate (like buying property), and cash (like money in your wallet)."
+                },
+                {
+                  type: "text",
+                  text: "One of the first decisions you'll make as an investor is how to divide your money among these assets. It's a bit like planning a meal – you want a balanced plate. We call this 'asset allocation.' Your choice depends on your goals and how much risk you're comfortable with."
                 },
                 {
                   type: "quiz",
-                  questionText: "",
+                  questionText: "What is the primary purpose of investing?",
                   options: [
-                    "",
-                    "",
-                    "",
-                    ""
+                    "To save money",
+                    "To grow wealth over time",
+                    "To pay off debt",
+                    "To buy a car"
                   ],
                   correctAnswer: 2,
-                  explanation: "",
-                },
+                  explanation: "Investing's main aim is to help your money grow over time by putting it into things that can increase in value, like stocks, bonds, or real estate. It's a bit like planting seeds to grow a money tree."
+                }
               ]
             },
             {
-              title: "Investing Guidelines",
+              title: "Types of Investments",
               subsections: [
                 {
                   type: "text",
-                  text: "",
+                  text: "In this section, we'll dive deeper into different types of investments. Stocks are like buying a slice of a company's cake – you get a share of the profits. Bonds are more like lending your money to a friend – they pay you back with interest."
                 },
                 {
                   type: "text",
-                  text: "",
+                  text: "Real estate is another option. It's like buying a house and renting it out to earn money. Mutual funds and exchange-traded funds (ETFs) are like buying a basket of different things, spreading your risk."
+                },
+                {
+                  type: "text",
+                  text: "Cryptocurrencies are digital currencies that use technology called blockchain. They're like digital gold, but they're also more volatile, like a rollercoaster ride. It's essential to understand what you're investing in."
                 },
                 {
                   type: "quiz",
-                  questionText: "",
+                  questionText: "What is the primary difference between stocks and bonds?",
                   options: [
-                    "",
-                    "",
-                    "",
-                    ""
+                    "Stocks represent ownership, while bonds represent debt.",
+                    "Stocks always generate higher returns than bonds.",
+                    "Bonds are riskier than stocks.",
+                    "Stocks are only suitable for short-term investments."
+                  ],
+                  correctAnswer: 1,
+                  explanation: "Stocks mean you own a piece of a company, like owning a share of a bakery. Bonds, on the other hand, are more like lending money to the bakery, and they pay you back with interest."
+                }
+              ]
+            },
+            {
+              title: "Risk and Diversification",
+              subsections: [
+                {
+                  type: "text",
+                  text: "Investing isn't risk-free, but you can manage it. Diversification is a bit like not putting all your eggs in one basket. By spreading your money across different types of investments, you reduce the risk of losing everything."
+                },
+                {
+                  type: "text",
+                  text: "We all have different levels of comfort with risk. Think of it as a rollercoaster ride – some people love it, while others prefer a gentle stroll. Your risk tolerance will help decide how you invest."
+                },
+                {
+                  type: "text",
+                  text: "Risk in investing comes in different forms, like the weather – it can change. Market risk is when investments go up and down, inflation risk is like things getting more expensive, and interest rate risk affects your returns."
+                },
+                {
+                  type: "text",
+                  text: "In this section, we'll explore ways to reduce risk, like using index funds or exchange-traded funds (ETFs). These are like buying a little bit of everything, so you're not banking everything on a single investment."
+                },
+                {
+                  type: "quiz",
+                  questionText: "Why is diversification essential in investing?",
+                  options: [
+                    "It guarantees high returns.",
+                    "It eliminates all investment risk.",
+                    "It reduces risk by spreading investments.",
+                    "It leads to higher taxes."
                   ],
                   correctAnswer: 3,
-                  explanation: "",
-                },
-                {
-                  type: "text",
-                  text: "",
-                },
-                {
-                  type: "text",
-                  text: "",
-                },
-                {
-                  type: "text",
-                  text: "",
-                },
-                {
-                  type: "quiz",
-                  questionText: "",
-                  options: [
-                    "",
-                    "",
-                    "",
-                    ""
-                  ],
-                  correctAnswer: 2,
-                  explanation: "",
-                },
+                  explanation: "Diversification is crucial because it lowers risk by spreading your investments. It's like having different ingredients for a meal – if one doesn't taste good, you've got others to enjoy."
+                }
               ]
             }
-          ]
+          ]          
         },
         {
           type: "star",
@@ -411,9 +414,19 @@ export const units = [
           
           overflowText: "Investments exceed 100%",
 
-          prompt: "Please analyze my current budgeting allocation based on the following percentages: <input-1>% for <title-1>, <input-2>% for <title-2>, <input-3>% for <title-3>, <input-4>% for <title-4>, <input-5>% for <title-5>. The remaining budget falls under an 'Other' category. Based on this allocation, could you please identify the three budgeting principles that best describe my current approach? Additionally, highlight any principles that I might not be following and provide suggestions for incorporating them into my budgeting strategy. Analyse how closely i am following the 50/30/20 rule. Please classify the overall budget allocation on a scale of 1-5, with 1 being the least important and 5 being the most important. Do not classify each category individually nor any principles that you may mention, but rather the overall budget allocation only. Please do not mention the rating system in your response, but ate the end of your response, please state the rating you have assigned to the overall budget allocation.",
+          prompt: "Please analyze my current investment allocation based on the following percentages: <input-1>% for <title-1>, <input-2>% for <title-2>, <input-3>% for <title-3>, <input-4>% for <title-4>. The remaining budget falls under an 'Other' category. Provide feedback in the 'you person' perspective. The response must be 1 object with the following structure.",
 
-          specialPrompt: " My investing goal is <goal>. The 'other' category includes <other>.",
+          outputStructure: {
+            principlesFollowed: "Text detailing the three investing principles that best describe my current approach, explaining the principles and how they are followed",
+            nonFollowedPrinciples: "Text detailing the investing principles that I am not following, explaining the principles and how they can be incorporated into my investment strategy",
+            overallFeedback: "Text detailing the overall feedback for the investment allocation approach and suggestions about how i should improve my allocation, without providing concrete values, but increments and decrements in each category.", 
+            rating: "Number from 1 to 5, representing a classification of the overall investment allocation, with 5 being the best rating",
+          } 
+          ,
+
+          systemContent: "Act as a investing expert and advisor for students",
+
+          specialPrompt: " My investing risk-tolerance is <risk-tolerance>. The 'other' category includes <other>.",
 
           graphic: "barPercentage",
 
@@ -434,7 +447,6 @@ export const units = [
 
           promptSpecialInputs: [
             "<other>",
-            "<goal>",
             "<risk-tolerance>"
           ],
 
@@ -562,7 +574,7 @@ export const units = [
 
         {
           type: "trophy",
-          description: "Expense Tracking and Analysis",
+          description: "Investment Tracking and Analysis",
 
           initialText: "Welcome to the Investment Odyssey! Embark on a financial journey where your investment decisions will shape your virtual character's destiny. Choose investment actions wisely, as they impact your financial future. After each choice, a new week unfolds, and the market unveils new events and opportunities. Explore, strategize, and let your investment acumen flourish in this captivating financial adventure!",
 

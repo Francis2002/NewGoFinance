@@ -130,7 +130,7 @@ const Introduction = () => {
 
   return (
     <AnimatePresence>
-      <div className="w-full h-full flex flex-col justify-center items-center gap-8 py-20">
+      <div className="w-full h-full flex flex-col justify-center items-center gap-8 py-12">
         <div className="fixed -bottom-6 sm:-bottom-8 min-h-[100px] h-[20%] w-full flex items-center justify-center z-10 bg-white gap-6 m-6 border">
           <div className=''>
             <CustomButton
@@ -140,7 +140,7 @@ const Introduction = () => {
               customStyles="px-4 py-2.5 font-bold text-sm w-full truncate min-w-[100px]"
             />
           </div>
-          <ProgressBar sections={snap.lesson.sections} currentSectionIndex={sectionInProgress}  currentSectionProgress={currentSectionProgress}/>
+          <ProgressBar sections={snap.lesson.sections} currentSectionIndex={sectionInProgress}  currentSectionProgress={currentSectionProgress} setCurrentSectionProgress={setCurrentSectionProgress} setCurrentSubSection={setCurrentSubSection} setSectionInProgress={setSectionInProgress}/>
         </div>
         {snap.lesson.sections[sectionInProgress].subsections.map((subsection, index) => (
           <div
@@ -148,6 +148,8 @@ const Introduction = () => {
             ref={(el) => (contentRef.current[index] = el)}
             className={`p-6 flex flex-col items-center gap-4 w-3/4 ${index > currentSubSection && 'hidden'}`}
           >
+            {/* Title */}
+            <h1 className={`text-3xl font-bold text-center m-24 ${index === 0 ? 'opacity-100' : 'opacity-0'}`}>{snap.lesson.sections[sectionInProgress].title}</h1>
             {renderSubSection(subsection, index)}
 
             {/* Continue button */}

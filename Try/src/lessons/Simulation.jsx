@@ -8,64 +8,15 @@ import { colors, mainStyles } from '../helpers/constants'
 import { CustomButton } from '../components'
 import { BarPercentage, ColorLegend, LineChart} from '../graphics'
 
-import { Configuration, OpenAIApi } from "openai";
-import * as dotenv from 'dotenv';
-
 const Simulation = () => {
-
-  dotenv.config();
-
-  const config = new Configuration({
-    apiKey: process.env.API_KEY,
-  });
-
-  const openai = new OpenAIApi(config);
 
   const snap = useSnapshot(state);
 
   const [overflow, setOverflow] = useState(false)
 
-  const [response, setResponse] = useState(null)
-
   const feedbackRef = useRef(null);
 
-  const requestJson = (prompt, jsonStructure) => `${prompt}
-  Do not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation.
-  ${JSON.stringify(jsonStructure, null, 2)}`;
-
-  const generateJson = async (messagesToSend) => {
-    const completion = await openai.createChatCompletion({
-      model: 'gpt-3.5-turbo',
-      messagesToSend,
-    });
-  
-    try {
-      return JSON.parse(completion.data.choices[0].message?.content);
-    } catch (e) {
-      throw new Error('The json strucure generated from gpt is not a valid one, please try again');
-    }
-  };
-
-  const requestedOutputStructure = [
-    {
-      title: 'The idea title',
-      description: 'The idea description',
-    },
-  ];
-  
-  const messages = [
-    {
-      role: 'system',
-      content: 'Act as a copywriter for developers',
-    },
-    {
-      role: 'user',
-      content: requestJson(
-        `I'm a software engineer. Create for me a list as long as you can of ideas for Javascript tutorials.`,
-        requestedOutputStructure
-      ),
-    },
-  ];
+  const [result, setResult] = useState()
 
   const handleInputChange = (title, value) => {
     if(snap.inputValues === null) state.inputValues = {}
@@ -110,21 +61,7 @@ const Simulation = () => {
     }
   };
 
-
-  async function getResponse(prompt){
-    await fetch('./src/lessons/responses.json')
-      .then(response => response.json())
-      .then(data => {
-        console.log(data[prompt])
-        setResponse(data[prompt])
-      })
-      .catch(err => {
-        console.log(err)
-      })
-  }
-
-
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
 
     let prompt = snap.lesson.prompt;
     let specialPrompt = snap.lesson.specialPrompt;
@@ -164,14 +101,48 @@ const Simulation = () => {
 
     /* getResponse('sim'); */
 
-    generateJson(messages)
-    .then((res) => {
-      console.log(res);
-    })
-    .catch((e) => {
-      console.log(e);
-    });
+    try {
+      console.log("Sending request to server...");
+      const result = await fetch(/* '/server/generate.js' */ 'http://localhost:8080', {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prompt: prompt, outputStructure: snap.lesson.outputStructure, systemContent: snap.lesson.systemContent }),
+      });
+
+      console.log("Request sent!");
+
+      console.log(result.body);
+
+      const data = await result.json();
+      console.log(data);
+      if (result.status !== 200) {
+        throw data.error || new Error(`Request failed with status ${result.status}`);
+      }
+
+      setResult(data.result);
+    } catch(error) {
+      // Consider implementing your own error handling logic here
+      console.error(error);
+      alert(error.message);
+    }
   }
+
+  const createFeedback = () => {
+    let feedback = "";
+    console.log(result);
+    let parsedValue = JSON.parse(result);
+    console.log(parsedValue);
+    //get keys of the parsedValue object as an array
+    let keys = Object.keys(parsedValue);
+    //loop over the keys array and add the values to the feedback string with a '\n\n' at the end of each line except the last one
+    for (let i = 0; i < keys.length-1; i++) {
+      feedback += parsedValue[keys[i]] + (i < keys.length - 1-1 ? "\n\n" : "");
+    }
+    return feedback;
+  }
+  
 
 
   useEffect(() => {
@@ -188,13 +159,13 @@ const Simulation = () => {
   }, [snap.mainInput, overflow, snap.specialInputs])
 
   useEffect(() => {
-    if(response !== null){
+    if(result !== null){
       feedbackRef.current.scrollIntoView({
         behavior: 'smooth',
         block: 'start',
       });
     }
-  }, [response]);
+  }, [result]);
 
   useEffect(() => {
     state.inputValues = {}
@@ -299,7 +270,7 @@ const Simulation = () => {
                     type={input.type}
                     placeholder={input.placeHolder}
                     id={`input-${index}`}
-                    value={input.isMain && "1000"}
+                    value={input.isMain ? (snap.mainInput !== null ? snap.mainInput : '') : undefined}
                     onBlur={(e) => {
                       if(!input.isSpecial && !input.isMain) handleInputChange(input.title, sanitizeInput(e.target.value))
                       if(input.isMain) handleMainInputChange(sanitizeInput(e.target.value))
@@ -329,10 +300,10 @@ const Simulation = () => {
               style={{background: mainStyles.backgroundColor, whiteSpace: 'pre-line'}}
               ref={feedbackRef}
             >
-              {response === null ? (
+              {result === undefined ? (
                 "Feedback to your decisions will appear here"
               ) : (
-                  response
+                  createFeedback()
               )}
             </motion.div>
           </div>
